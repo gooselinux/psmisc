@@ -1,0 +1,131 @@
+diff -ru psmisc-22.6.org/src/fuser.c psmisc-22.6/src/fuser.c
+--- psmisc-22.6.org/src/fuser.c	2009-01-23 19:24:11.000000000 +0200
++++ psmisc-22.6/src/fuser.c	2009-01-23 19:28:43.000000000 +0200
+@@ -69,7 +69,6 @@
+ 
+ int parse_mount(struct names *this_name, struct device_list **dev_list);
+ static void add_device(struct device_list **dev_list, struct names  *this_name, dev_t device);
+-void scan_mount_devices(const opt_type opts, struct mountdev_list **mount_devices);
+ void fill_unix_cache(struct unixsocket_list **unixsocket_head);
+ static dev_t find_net_dev(void);
+ static void scan_procs(struct names *names_head, struct inode_list *ino_head, struct device_list *dev_head);
+@@ -365,10 +364,9 @@
+ 	return 0;
+ }
+ 
+-int parse_mounts(struct names *this_name, struct mountdev_list *mounts, struct device_list **dev_list, const char opts) 
++int parse_mounts(struct names *this_name, struct device_list **dev_list, const char opts) 
+ {
+ 	struct stat st;
+-	struct mountdev_list *mountptr;
+ 	dev_t match_device;
+ 
+ 	if (stat(this_name->filename, &st) != 0) {
+@@ -380,13 +378,7 @@
+ 		match_device = st.st_rdev;
+ 	else
+ 		match_device = st.st_dev;
+-	for (mountptr = mounts ; mountptr != NULL ; mountptr = mountptr->next) {
+-		if (mountptr->device == match_device) {
+-			/*printf("Debug: adding parse_mounts() adding %s\n", 
+-					this_name->filename);*/
+-			add_device(dev_list, this_name, match_device);
+-		}
+-	}
++	add_device(dev_list, this_name, match_device);
+ 	return 0;
+ }
+ 
+@@ -660,7 +652,6 @@
+ 	int ipv4_only, ipv6_only;
+ #endif
+ 	unsigned char default_namespace = NAMESPACE_FILE;
+-	struct mountdev_list *mount_devices = NULL;
+ 	struct device_list *match_devices = NULL;
+ 	struct unixsocket_list *unixsockets = NULL;
+ 
+@@ -692,7 +683,6 @@
+ #endif
+ 
+ 	netdev = find_net_dev();
+-	scan_mount_devices(opts, &mount_devices);
+ 	fill_unix_cache(&unixsockets);
+ 
+ 	/* getopt doesnt like things like -SIGBLAH */
+@@ -831,7 +821,7 @@
+ 					parse_file(this_name, &match_inodes);
+ 					parse_unixsockets(this_name, &match_inodes, unixsockets);
+ 				if (opts & OPT_MOUNTPOINT || opts & OPT_MOUNTS)
+-					parse_mounts(this_name, mount_devices, &match_devices, opts);
++					parse_mounts(this_name, &match_devices, opts);
+ 				break;
+ 		}
+ 
+@@ -1082,20 +1072,6 @@
+ 	return st.st_uid;
+ }
+ 
+-void add_mount_device(struct mountdev_list **mount_head,const char *fsname, const char *dir, dev_t device)
+-{
+-	struct mountdev_list *newmount;
+-	/*printf("Adding mount Path: %s Dir:%s dev:%0x\n",dir, fsname, device);*/
+-
+-	if ( (newmount = malloc(sizeof(struct mountdev_list))) == NULL)
+-		return;
+-	newmount->fsname = strdup(fsname);
+-	newmount->dir = strdup(dir);
+-	newmount->device = device;
+-	newmount->next = *mount_head;
+-	*mount_head = newmount;
+-}
+-
+ /*
+  * fill_unix_cache : Create a list of Unix sockets
+  *   This list is used later for matching purposes
+@@ -1135,28 +1111,6 @@
+ 
+ }
+ 
+-/*
+- * scan_mount_devices : Create a list of mount points and devices
+- *   This list is used later for matching purposes
+- */
+-void scan_mount_devices(const opt_type opts, struct mountdev_list **mount_devices)
+-{
+-	FILE *mntfp;
+-	struct mntent *mnt_ptr;
+-	struct stat st;
+-	
+-	if ( (mntfp = setmntent("/etc/mtab","r")) == NULL) {
+-		fprintf(stderr, _("Cannot open /etc/mtab: %s\n"),
+-				strerror(errno));
+-		return;
+-	}
+-	while ( (mnt_ptr = getmntent(mntfp)) != NULL) {
+-		if (stat(mnt_ptr->mnt_dir, &st) == 0) {
+-			add_mount_device(mount_devices, mnt_ptr->mnt_fsname, mnt_ptr->mnt_dir, st.st_dev);
+-		}
+-	}
+-}
+-
+ #ifdef DEBUG
+ /* often not used, doesnt need translation */
+ static void debug_match_lists(struct names *names_head, struct inode_list *ino_head, struct device_list *dev_head)
+diff -ru psmisc-22.6.org/src/fuser.h psmisc-22.6/src/fuser.h
+--- psmisc-22.6.org/src/fuser.h	2009-01-23 19:24:11.000000000 +0200
++++ psmisc-22.6/src/fuser.h	2009-01-23 19:29:48.000000000 +0200
+@@ -58,14 +58,6 @@
+ 	struct inode_list *next;
+ };
+ 
+-struct mountdev_list {
+-	char *fsname;
+-	char *dir;
+-	dev_t	device;
+-	struct mountdev_list *next;
+-};
+-
+-
+ struct device_list {
+ 	struct names *name;
+ 	dev_t	device;

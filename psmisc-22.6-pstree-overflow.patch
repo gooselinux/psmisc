@@ -1,0 +1,11 @@
+diff -up psmisc-22.6/src/pstree.c.overflow psmisc-22.6/src/pstree.c
+--- psmisc-22.6/src/pstree.c.overflow	2008-04-14 12:53:07.000000000 +0200
++++ psmisc-22.6/src/pstree.c	2008-04-14 13:05:51.000000000 +0200
+@@ -608,6 +608,7 @@ read_proc (void)
+ 		perror (path);
+ 		exit (1);
+ 	      }
++            memset(readbuf, '\0', BUFSIZ + 1);
+             fread(readbuf, BUFSIZ, 1, file) ;
+             if (ferror(file) == 0) 
+             {

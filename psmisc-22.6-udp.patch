@@ -1,0 +1,15 @@
+diff -up psmisc-22.6/src/fuser.c.udp psmisc-22.6/src/fuser.c
+--- psmisc-22.6/src/fuser.c.udp	2010-05-26 14:14:15.000000000 +0200
++++ psmisc-22.6/src/fuser.c	2010-05-26 14:15:44.258155041 +0200
+@@ -811,9 +811,9 @@ int main(int argc, char *argv[])
+ 			case NAMESPACE_UDP:
+ 				asprintf(&(this_name->filename), "%s/udp", argv[optc]);
+ #ifdef WITH_IPV6
+-				parse_inet(this_name, ipv4_only, ipv6_only, &tcp_connection_list, &tcp6_connection_list);
++				parse_inet(this_name, ipv4_only, ipv6_only, &udp_connection_list, &udp6_connection_list);
+ #else
+-				parse_inet(this_name, &tcp_connection_list);
++				parse_inet(this_name, &udp_connection_list);
+ #endif
+ 				break;
+ 			default: /* FILE */
