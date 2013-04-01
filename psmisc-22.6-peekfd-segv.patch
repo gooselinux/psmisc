@@ -1,0 +1,12 @@
+diff -up psmisc-22.6/src/peekfd.c.orig psmisc-22.6/src/peekfd.c
+--- psmisc-22.6/src/peekfd.c.orig	2007-11-04 06:50:17.000000000 +0100
++++ psmisc-22.6/src/peekfd.c	2010-11-10 08:28:09.503298002 +0100
+@@ -178,7 +178,7 @@ int main(int argc, char **argv)
+       numfds = argc - optind;
+       fds = malloc(sizeof(int) * numfds);
+ 	  for (i = 0; i < numfds; i++)
+-		fds[i] = atoi(argv[optind + 1 + i]);
++		fds[i] = atoi(argv[optind + i]);
+     }
+ 
+ 	attach(target_pid);

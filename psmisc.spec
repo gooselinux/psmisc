@@ -1,7 +1,7 @@
 Summary: Utilities for managing processes on your system
 Name: psmisc
 Version: 22.6
-Release: 15%{?dist}
+Release: 15%{?dist}.1
 License: GPLv2+
 Group: Applications/System
 Source: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
@@ -17,6 +17,10 @@ Patch2: psmisc-22.6-fuser-remove-mountlist.patch
 Patch3: psmisc-22.6-overflow2.patch
 #fix #596055
 Patch4: psmisc-22.6-udp.patch
+#fix #668992
+Patch5: psmisc-22.6-peekfd-segv.patch
+#fix #668989
+Patch6: psmisc-22.6-killall-pgid.patch
 
 BuildRequires: libselinux-devel
 BuildRequires: gettext
@@ -38,6 +42,8 @@ of processes that are using specified files or filesystems.
 %patch2 -p1 -b .mount
 %patch3 -p1 -b .overflow2
 %patch4 -p1 -b .udp
+%patch5 -p1 -b .peekfd
+%patch6 -p1 -b .killall
 
 %build
 export CFLAGS="$RPM_OPT_FLAGS -D_GNU_SOURCE"
@@ -79,6 +85,11 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Wed Jan 12 2011 Jan Görig <jgorig@redhat.com> 22.6-15.el6_0.1
+- Fixed SIGV in peekfd
+- Fixed unitialized memory in killall
+- Resolves: rhbz#668989, rhbz#668992
+
 * Wed May 26 2010 Jan Görig <jgorig@redhat.com> 22.6-15
 - Fixed udp namespace problem in fuser
 - Resolves: rhbz#596055
